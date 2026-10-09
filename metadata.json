@@ -1,0 +1,10 @@
+{
+  "name": "Pastures Gardening & Landscaping",
+  "description": "Complete gardening platform featuring real-time booking, AI quote estimation, plant & AR garden tracking, invoices, and payments.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
