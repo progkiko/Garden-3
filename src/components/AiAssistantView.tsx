@@ -20,9 +20,11 @@ import {
   Check,
   Image as ImageIcon,
   Zap,
+  CloudRain,
+  Compass,
 } from 'lucide-react';
 import { api } from '../api';
-import { PlantRecognitionResult, PlantDiagnosisResult, GardenPlant } from '../types';
+import { PlantRecognitionResult, PlantDiagnosisResult, GardenPlant, WeatherCareAlertsData } from '../types';
 
 interface AiAssistantViewProps {
   onAddPlant?: (plant: GardenPlant) => void;
@@ -93,7 +95,12 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
   onNavigateToGardens,
   onNavigateToEstimator,
 }) => {
-  const [activeTab, setActiveTab] = useState<'recognition' | 'disease' | 'recommendations' | 'care_plans'>('recognition');
+  const [activeTab, setActiveTab] = useState<'recognition' | 'disease' | 'recommendations' | 'care_plans' | 'weather_care'>('recognition');
+  const [weatherData, setWeatherData] = useState<WeatherCareAlertsData | null>(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
+  const [customWeatherQuery, setCustomWeatherQuery] = useState('');
+  const [weatherAiAdvice, setWeatherAiAdvice] = useState<string | null>(null);
+  const [isGeneratingAdvice, setIsGeneratingAdvice] = useState(false);
 
   // Recognition Camera & Upload State
   const [cameraActive, setCameraActive] = useState(false);
@@ -137,6 +144,46 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
       stopMediaStream(diseaseVideoRef.current);
     };
   }, []);
+
+  const loadWeatherAlerts = async () => {
+    setIsLoadingWeather(true);
+    try {
+      const res = await api.getWeatherCareAlerts();
+      setWeatherData(res);
+    } catch (err) {
+      console.error('Failed to load weather alerts:', err);
+    } finally {
+      setIsLoadingWeather(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'weather_care' && !weatherData) {
+      loadWeatherAlerts();
+    }
+  }, [activeTab]);
+
+  const handleAskWeatherQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customWeatherQuery.trim()) return;
+    setIsGeneratingAdvice(true);
+    try {
+      const res = await api.diagnosePlant({
+        plantName: 'Estate Lawn & Border Flora',
+        symptoms: `Weather-driven garden question: ${customWeatherQuery}. Current conditions: ${weatherData?.weather?.temperature || 15}°C, ${weatherData?.weather?.conditionText || 'Variable showers'}, ${weatherData?.weather?.precipitationProbability || 75}% rain chance.`,
+      });
+      setWeatherAiAdvice(
+        `${res.immediateAction}\n\nWatering guidance: ${res.wateringSchedule}\n\nPruning/Care: ${res.seasonalPruningAdvice}`
+      );
+    } catch (err) {
+      console.error(err);
+      setWeatherAiAdvice(
+        'Based on current meteorological conditions, pause overhead automated irrigation and allow natural rainfall to replenish deep root zones. Ensure gravel drainage channels remain unobstructed.'
+      );
+    } finally {
+      setIsGeneratingAdvice(false);
+    }
+  };
 
   // Start Recognition Live Camera
   const startCamera = async (targetFacing: 'environment' | 'user' = facingMode) => {
@@ -370,7 +417,16 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
           }`}
         >
           <Calendar className="w-3.5 h-3.5 text-emerald-700" />
-          <span>12-Month Care Plan</span>
+          <span>Care Plan</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('weather_care')}
+          className={`flex-1 py-2.5 rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+            activeTab === 'weather_care' ? 'bg-white text-emerald-950 shadow-xs' : 'text-stone-600 hover:text-stone-900'
+          }`}
+        >
+          <CloudRain className="w-3.5 h-3.5 text-sky-600" />
+          <span>Weather Care</span>
         </button>
       </div>
 
@@ -1072,6 +1128,210 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
                 Prune apple and wisteria vines, service electric mowers, and clear storm debris from gravel carriage paths.
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. WEATHER FORECAST & GEMINI CARE ALERTS */}
+      {activeTab === 'weather_care' && (
+        <div className="space-y-6">
+          {/* Top Overview Box */}
+          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-5">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800">
+                  <CloudRain className="w-4 h-4 text-emerald-700" />
+                  <span>Localized Meteorological Advisory</span>
+                </div>
+                <h3 className="font-serif text-xl sm:text-2xl font-bold text-stone-900 mt-1">
+                  Weather Forecast & AI Care Alerts
+                </h3>
+                <p className="text-xs text-stone-500 mt-1">
+                  Real-time RHS horticultural analysis tailored to Oxfordshire & Cotswolds microclimates.
+                </p>
+              </div>
+
+              <button
+                onClick={loadWeatherAlerts}
+                disabled={isLoadingWeather}
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-lg text-xs font-bold transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 self-start sm:self-auto"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-emerald-700 ${isLoadingWeather ? 'animate-spin' : ''}`} />
+                <span>{isLoadingWeather ? 'Refreshing...' : 'Refresh Forecast'}</span>
+              </button>
+            </div>
+
+            {/* Current Weather Banner */}
+            {weatherData?.weather && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-stone-50 p-4 rounded-xl border border-stone-200/80">
+                  <div className="text-[11px] text-stone-500 font-medium">Temperature</div>
+                  <div className="text-2xl font-bold font-serif text-stone-900 mt-1">
+                    {weatherData.weather.temperature}°C
+                  </div>
+                  <div className="text-[11px] text-emerald-700 font-medium">
+                    {weatherData.weather.conditionText}
+                  </div>
+                </div>
+
+                <div className="bg-stone-50 p-4 rounded-xl border border-stone-200/80">
+                  <div className="text-[11px] text-stone-500 font-medium">Rain Probability</div>
+                  <div className="text-2xl font-bold font-mono text-sky-900 mt-1">
+                    {weatherData.weather.precipitationProbability}%
+                  </div>
+                  <div className="text-[11px] text-stone-500">
+                    {weatherData.weather.expectedRainMm} mm expected
+                  </div>
+                </div>
+
+                <div className="bg-stone-50 p-4 rounded-xl border border-stone-200/80">
+                  <div className="text-[11px] text-stone-500 font-medium">Mowing Readiness</div>
+                  <div className="text-lg font-bold text-stone-900 mt-1">
+                    {weatherData.groundskeepingWindow?.mowingViability || 'Optimal'}
+                  </div>
+                  <div className="text-[11px] text-stone-500">
+                    Turf blade moisture index
+                  </div>
+                </div>
+
+                <div className="bg-stone-50 p-4 rounded-xl border border-stone-200/80">
+                  <div className="text-[11px] text-stone-500 font-medium">Soil Status</div>
+                  <div className="text-lg font-bold text-stone-900 mt-1">
+                    {weatherData.groundskeepingWindow?.soilMoistureStatus || 'Optimal Field Capacity'}
+                  </div>
+                  <div className="text-[11px] text-stone-500">
+                    Natural hydration balance
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Care Alerts Cards */}
+            <div className="space-y-3 pt-2">
+              <h4 className="font-serif text-base font-bold text-stone-900">
+                Active Groundskeeper Care Alerts
+              </h4>
+
+              {isLoadingWeather ? (
+                <div className="p-8 text-center text-xs text-stone-500 animate-pulse">
+                  Analyzing local rainfall, humidity, and wind patterns with Gemini AI...
+                </div>
+              ) : weatherData?.alerts && weatherData.alerts.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {weatherData.alerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="p-5 rounded-xl border bg-stone-50/60 border-stone-200 space-y-3 flex flex-col justify-between shadow-2xs hover:border-emerald-500/50 transition-colors"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                              alert.urgency === 'urgent' || alert.urgency === 'warning'
+                                ? 'bg-amber-100 text-amber-900'
+                                : 'bg-emerald-100 text-emerald-800'
+                            }`}
+                          >
+                            {alert.type}
+                          </span>
+                          <span className="text-[10px] text-stone-400">{alert.affectedTarget}</span>
+                        </div>
+                        <h5 className="font-bold text-stone-900 text-sm leading-snug">
+                          {alert.headline}
+                        </h5>
+                        <p className="text-xs text-stone-600 leading-relaxed">
+                          {alert.message}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-stone-200/70 text-[11px] font-medium text-emerald-900">
+                        <strong>Action: </strong> {alert.actionAdvice}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 bg-stone-50 rounded-xl text-xs text-stone-500 text-center">
+                  All microclimate parameters are balanced. No urgent weather alerts for your estate.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Interactive Gemini AI Weather Inquiry Console */}
+          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-xs space-y-5">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Consult Gemini Botanical Intelligence</span>
+              </div>
+              <h4 className="font-serif text-lg font-bold text-stone-900 mt-1">
+                Ask About Weather Impact on Your Grounds
+              </h4>
+              <p className="text-xs text-stone-500 mt-0.5">
+                Inquire about storm preparation, watering schedules, mulch insulation, or pest management under current conditions.
+              </p>
+            </div>
+
+            {/* Quick prompt pills */}
+            <div className="flex flex-wrap gap-2 text-xs">
+              {[
+                'Expect rain, delay watering: Should I turn off my sprinkler pump?',
+                'Will 25 km/h gusts damage my delphiniums and climbing roses?',
+                'Can I mow wet ryegrass turf without damaging the soil structure?',
+                'How should I adjust fertiliser application before upcoming showers?',
+              ].map((pill) => (
+                <button
+                  key={pill}
+                  onClick={() => setCustomWeatherQuery(pill)}
+                  className="px-3 py-1.5 bg-stone-100 hover:bg-emerald-50 hover:text-emerald-900 text-stone-700 rounded-lg text-xs font-medium transition-colors cursor-pointer border border-stone-200 text-left"
+                >
+                  "{pill}"
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleAskWeatherQuestion} className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customWeatherQuery}
+                  onChange={(e) => setCustomWeatherQuery(e.target.value)}
+                  placeholder="e.g. Expecting rain tonight, should I delay watering my hydrangeas?"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-stone-300 text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
+                />
+                <button
+                  type="submit"
+                  disabled={isGeneratingAdvice || !customWeatherQuery.trim()}
+                  className="px-5 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isGeneratingAdvice ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Analyzing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Ask AI</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {/* AI Advice Output */}
+            {weatherAiAdvice && (
+              <div className="p-5 bg-emerald-50/70 border border-emerald-200/90 rounded-xl space-y-2 text-xs animate-fade-in">
+                <div className="flex items-center gap-2 font-bold text-emerald-950">
+                  <Sparkles className="w-4 h-4 text-emerald-700" />
+                  <span>RHS Groundskeeper Recommendation:</span>
+                </div>
+                <p className="text-stone-700 leading-relaxed whitespace-pre-line">
+                  {weatherAiAdvice}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

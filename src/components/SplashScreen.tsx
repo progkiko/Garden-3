@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Sprout, ArrowRight, ShieldCheck, Compass, Sparkles, LogIn } from 'lucide-react';
+import { ArrowRight, Sprout, ShieldCheck, LogIn } from 'lucide-react';
+import { PasturesLogo } from './PasturesLogo';
 
 interface SplashScreenProps {
   onEnterApp: () => void;
+  onEnterClientPortal?: () => void;
+  onEnterProviderPortal?: () => void;
   onOpenOnboarding: () => void;
   onOpenAuth: () => void;
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({
   onEnterApp,
+  onEnterClientPortal,
+  onEnterProviderPortal,
   onOpenOnboarding,
   onOpenAuth,
 }) => {
@@ -43,71 +48,68 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         </button>
       </div>
 
-      {/* Center Botanical Crest & Headline */}
+      {/* Center Botanical Crest & Headline with Authentic Logo */}
       <div className={`relative z-10 max-w-3xl mx-auto px-6 text-center space-y-6 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-        <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-900/60 border border-emerald-700/60 text-emerald-400 shadow-2xl backdrop-blur-md mx-auto">
-          <Sprout className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400" />
+        <div className="py-2">
+          <PasturesLogo variant="full" size="xl" theme="light" />
         </div>
 
-        <div className="space-y-3">
-          <div className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-emerald-400 font-mono">
-            Royal Horticultural Society Certified
+        <div className="space-y-2">
+          <div className="text-xs font-semibold tracking-widest uppercase text-emerald-400 font-mono">
+            Royal Horticultural Society Certified Grounds Care
           </div>
-          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-tight">
-            Pastures Gardening & Landscaping
-          </h1>
           <p className="text-sm sm:text-base text-stone-300 max-w-xl mx-auto leading-relaxed">
-            Architectural estate landscaping, precision cylinder striping, AR botanical tracking, and automated photometric estimation.
+            Architectural estate landscaping, precision cylinder striping, AR botanical tracking, and complete client & grounds operations management.
           </p>
         </div>
 
-        {/* 3 Entry Gateways */}
-        <div className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-left max-w-2xl mx-auto">
-          {/* Option 1: Explore Dashboard */}
+        {/* 3 Entry Gateways: Client Portal, Service Provider Hub, Onboarding */}
+        <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-left max-w-2xl mx-auto">
+          {/* Option 1: Client Portal */}
           <button
-            onClick={onEnterApp}
-            className="p-4 rounded-xl bg-emerald-900/50 hover:bg-emerald-800/60 border border-emerald-700/60 transition-all cursor-pointer group flex flex-col justify-between"
+            onClick={onEnterClientPortal || onEnterApp}
+            className="p-4 rounded-xl bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-700/60 transition-all cursor-pointer group flex flex-col justify-between"
           >
             <div>
               <div className="w-8 h-8 rounded-lg bg-emerald-800 text-emerald-300 flex items-center justify-center mb-3">
-                <Compass className="w-4 h-4" />
+                <Sprout className="w-4 h-4 text-emerald-300" />
               </div>
               <div className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
-                Enter Dashboard
+                Estate Client Portal
               </div>
               <div className="text-[11px] text-stone-300 mt-1 leading-snug">
-                Access scheduled visits, garden zones, and billing ledger.
+                Book visits, approve quotes, track plant passport, and view invoices.
               </div>
             </div>
             <div className="mt-3 flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
-              <span>Launch Now</span>
+              <span>Enter as Client</span>
               <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
             </div>
           </button>
 
-          {/* Option 2: Onboarding Tour */}
+          {/* Option 2: Service Provider Portal */}
           <button
-            onClick={onOpenOnboarding}
-            className="p-4 rounded-xl bg-stone-900/80 hover:bg-stone-800 border border-stone-800 hover:border-stone-700 transition-all cursor-pointer group flex flex-col justify-between"
+            onClick={onEnterProviderPortal || onEnterApp}
+            className="p-4 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700/80 transition-all cursor-pointer group flex flex-col justify-between"
           >
             <div>
-              <div className="w-8 h-8 rounded-lg bg-stone-800 text-stone-300 flex items-center justify-center mb-3">
-                <Sparkles className="w-4 h-4 text-emerald-400" />
+              <div className="w-8 h-8 rounded-lg bg-stone-800 text-emerald-400 flex items-center justify-center mb-3">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
               </div>
               <div className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
-                Onboarding Tour
+                Service Provider Hub
               </div>
-              <div className="text-[11px] text-stone-400 mt-1 leading-snug">
-                Walkthrough of AR simulator, RHS care, and app permissions.
+              <div className="text-[11px] text-stone-300 mt-1 leading-snug">
+                Daily field roster, on-site checklist, quote builder, and team fleet.
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-1 text-[11px] font-semibold text-stone-300">
-              <span>Start 3-Step Tour</span>
+            <div className="mt-3 flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
+              <span>Enter Operations</span>
               <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
             </div>
           </button>
 
-          {/* Option 3: Sign In / Switch Role */}
+          {/* Option 3: Sign In / Onboarding */}
           <button
             onClick={onOpenAuth}
             className="p-4 rounded-xl bg-stone-900/80 hover:bg-stone-800 border border-stone-800 hover:border-stone-700 transition-all cursor-pointer group flex flex-col justify-between"
@@ -117,10 +119,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
                 <LogIn className="w-4 h-4 text-emerald-400" />
               </div>
               <div className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
-                Authentication
+                Account & Tour
               </div>
               <div className="text-[11px] text-stone-400 mt-1 leading-snug">
-                Sign in, create account, reset password, or verify email.
+                Sign in, switch persona, or take the interactive walkthrough.
               </div>
             </div>
             <div className="mt-3 flex items-center gap-1 text-[11px] font-semibold text-stone-300">

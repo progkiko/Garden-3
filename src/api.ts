@@ -6,6 +6,7 @@ import {
   PlantDiagnosisResult,
   PlantRecognitionResult,
   CameraVisionResult,
+  WeatherCareAlertsData,
 } from './types';
 import { ClientRequest, BackendStats } from '../server/types';
 
@@ -138,6 +139,16 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(quote),
+    });
+    const data = await res.json();
+    return data.quote;
+  },
+
+  async updateQuote(quoteId: string, updates: Partial<QuoteEstimate>): Promise<QuoteEstimate> {
+    const res = await fetch(`/api/quotes/${quoteId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
     });
     const data = await res.json();
     return data.quote;
@@ -332,5 +343,30 @@ export const api = {
     });
     const data = await res.json();
     return data.vision;
+  },
+
+  // Weather & Localized Care Alerts
+  async getWeatherCareAlerts(params?: {
+    lat?: number;
+    lon?: number;
+    locationName?: string;
+    plants?: string[];
+  }): Promise<WeatherCareAlertsData> {
+    const urlParams = new URLSearchParams();
+    if (params?.lat !== undefined) urlParams.append('lat', params.lat.toString());
+    if (params?.lon !== undefined) urlParams.append('lon', params.lon.toString());
+    if (params?.locationName) urlParams.append('locationName', params.locationName);
+    if (params?.plants && params.plants.length > 0) urlParams.append('plants', params.plants.join(','));
+
+    const res = await fetch(`/api/weather-care-alerts?${urlParams.toString()}`);
+    const data = await res.json();
+    if (!data.success && data.error) {
+      throw new Error(data.error);
+    }
+    return {
+      weather: data.weather,
+      alerts: data.alerts,
+      groundskeepingWindow: data.groundskeepingWindow,
+    };
   },
 };

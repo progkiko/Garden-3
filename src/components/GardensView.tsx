@@ -13,14 +13,22 @@ import {
   Clock,
   ArrowRight,
   Sparkles,
+  Map,
+  Box,
+  Globe,
+  Camera,
 } from 'lucide-react';
+import { GardenTrackingArView, GardenViewMode } from './GardenTrackingArView';
 
 interface GardensViewProps {
   plants: GardenPlant[];
   onSelectPlant: (plant: GardenPlant) => void;
   onOpenGardenMap: () => void;
   onWaterPlant: (plant: GardenPlant) => void;
+  onAddPlant?: (plant: GardenPlant) => void;
+  onUpdatePlant?: (plant: GardenPlant) => void;
   initialSelectedPlantId?: string;
+  initialGardenMapMode?: GardenViewMode;
 }
 
 export const GardensView: React.FC<GardensViewProps> = ({
@@ -28,10 +36,14 @@ export const GardensView: React.FC<GardensViewProps> = ({
   onSelectPlant,
   onOpenGardenMap,
   onWaterPlant,
+  onAddPlant,
+  onUpdatePlant,
   initialSelectedPlantId,
+  initialGardenMapMode = 'interactive_layout',
 }) => {
   const [selectedGardenId, setSelectedGardenId] = useState('g1');
-  const [activeTab, setActiveTab] = useState<'zones' | 'plants' | 'timeline' | 'history'>('zones');
+  const [activeTab, setActiveTab] = useState<'layout' | 'zones' | 'plants' | 'timeline' | 'history'>('layout');
+  const [gardenMapMode, setGardenMapMode] = useState<GardenViewMode>(initialGardenMapMode);
   const [selectedSpecimen, setSelectedSpecimen] = useState<GardenPlant | null>(plants[0] || null);
 
   React.useEffect(() => {
@@ -111,27 +123,76 @@ export const GardensView: React.FC<GardensViewProps> = ({
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-4">
+      {/* Header & Quick Mode Switcher */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-stone-200 pb-5">
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
-            Estate Topography
+            Estate Topography & Flora Digital Twin
           </span>
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 mt-1">
-            Gardens & Specimen Inventory
+            Gardens & Spatial Landscape Map
           </h1>
           <p className="text-xs sm:text-sm text-stone-600 mt-1">
-            Comprehensive zone coordinates, botanical timelines, and arborist maintenance logs.
+            Interactive garden layout, 3D terrain orbit, 360° panoramic grounds tour, and verified arborist logs.
           </p>
         </div>
 
-        <button
-          onClick={onOpenGardenMap}
-          className="px-4 py-2 text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-700 rounded-lg cursor-pointer transition-colors flex items-center gap-2 shadow-xs whitespace-nowrap"
-        >
-          <Layers className="w-4 h-4" />
-          <span>Launch 2D & AR Map</span>
-        </button>
+        {/* Quick View Mode Pills (Direct access to interactive layout, 3D, and 360) */}
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-stone-200/90 rounded-xl text-xs font-semibold shadow-inner self-start lg:self-auto">
+          <button
+            onClick={() => {
+              setActiveTab('layout');
+              setGardenMapMode('interactive_layout');
+            }}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'layout' && gardenMapMode === 'interactive_layout'
+                ? 'bg-white text-emerald-950 font-bold shadow-xs'
+                : 'text-stone-700 hover:text-stone-900'
+            }`}
+          >
+            <Map className="w-3.5 h-3.5 text-emerald-700" />
+            <span>Interactive Layout</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('layout');
+              setGardenMapMode('view_3d');
+            }}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'layout' && gardenMapMode === 'view_3d'
+                ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                : 'text-stone-700 hover:text-stone-900'
+            }`}
+          >
+            <Box className="w-3.5 h-3.5 text-emerald-300" />
+            <span>3D Terrain Map</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('layout');
+              setGardenMapMode('panorama_360');
+            }}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'layout' && gardenMapMode === 'panorama_360'
+                ? 'bg-emerald-800 text-white font-bold shadow-xs'
+                : 'text-stone-700 hover:text-stone-900'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5 text-emerald-300" />
+            <span>360° Panoramic Tour</span>
+          </button>
+
+          <button
+            onClick={onOpenGardenMap}
+            className="px-3 py-1.5 rounded-lg text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition-colors flex items-center gap-1 cursor-pointer"
+            title="Launch Dedicated AR HUD"
+          >
+            <Camera className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="hidden sm:inline">AR HUD</span>
+          </button>
+        </div>
       </div>
 
       {/* Garden Selector Cards */}
@@ -170,8 +231,9 @@ export const GardensView: React.FC<GardensViewProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 p-1 bg-stone-200/80 rounded-xl text-xs font-semibold max-w-xl">
+      <div className="flex items-center gap-1 p-1 bg-stone-200/80 rounded-xl text-xs font-semibold overflow-x-auto max-w-full">
         {[
+          { id: 'layout', label: '🗺️ Interactive Layout & 3D/360°' },
           { id: 'zones', label: 'Garden Zones' },
           { id: 'plants', label: `Specimens (${plants.length})` },
           { id: 'timeline', label: 'Plant Timeline' },
@@ -180,14 +242,26 @@ export const GardensView: React.FC<GardensViewProps> = ({
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id as any)}
-            className={`flex-1 py-2 rounded-lg transition-colors cursor-pointer text-center ${
-              activeTab === t.id ? 'bg-white text-emerald-950 shadow-xs' : 'text-stone-600'
+            className={`px-3.5 py-2 rounded-lg transition-colors cursor-pointer text-center whitespace-nowrap ${
+              activeTab === t.id ? 'bg-white text-emerald-950 font-bold shadow-xs' : 'text-stone-600 hover:text-stone-900'
             }`}
           >
             {t.label}
           </button>
         ))}
       </div>
+
+      {/* 0. INTERACTIVE GARDEN LAYOUT, 3D MAP & 360° PANORAMA */}
+      {activeTab === 'layout' && (
+        <div className="space-y-4">
+          <GardenTrackingArView
+            plants={plants}
+            onUpdatePlant={onUpdatePlant || onSelectPlant}
+            onAddPlant={onAddPlant || ((p) => {})}
+            initialMode={gardenMapMode}
+          />
+        </div>
+      )}
 
       {/* 1. GARDEN ZONES */}
       {activeTab === 'zones' && (

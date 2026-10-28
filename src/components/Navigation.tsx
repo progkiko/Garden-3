@@ -26,11 +26,19 @@ import {
   Tag,
   CheckCircle2,
   ChevronRight,
+  Lock,
+  HelpCircle,
+  Key,
+  Film,
 } from 'lucide-react';
+
+import { PasturesLogo } from './PasturesLogo';
 
 export type NavTab =
   | 'home'
   | 'dashboard'
+  | 'client_portal'
+  | 'provider_portal'
   | 'bookings'
   | 'quotes'
   | 'payments'
@@ -39,7 +47,8 @@ export type NavTab =
   | 'ai_assistant'
   | 'messages'
   | 'profile'
-  | 'requests';
+  | 'requests'
+  | 'unchanging_lane';
 
 export interface NavigationProps {
   currentTab: NavTab;
@@ -60,6 +69,9 @@ export interface NavigationProps {
   onSelectBooking?: (booking: Booking) => void;
   onSelectPlant?: (plant: GardenPlant) => void;
   onSelectClientRequest?: (request: ClientRequest) => void;
+  isProviderAuthenticated?: boolean;
+  onOpenProviderLogin?: () => void;
+  onOpenPortalGuide?: () => void;
 }
 
 type SearchCategory = 'all' | 'bookings' | 'plants' | 'requests';
@@ -93,6 +105,9 @@ export const Navigation: React.FC<NavigationProps> = ({
   onSelectBooking,
   onSelectPlant,
   onSelectClientRequest,
+  isProviderAuthenticated = false,
+  onOpenProviderLogin,
+  onOpenPortalGuide,
 }) => {
   // Global Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -327,11 +342,10 @@ export const Navigation: React.FC<NavigationProps> = ({
         {/* Zone 1: Brand mark */}
         <button
           onClick={() => onSelectTab('home')}
-          className="text-left group cursor-pointer focus:outline-none shrink-0"
+          className="text-left group cursor-pointer focus:outline-none shrink-0 py-0.5 hover:opacity-90 transition-opacity"
+          title="Pastures Gardening and Maintenance"
         >
-          <span className="font-serif text-lg sm:text-xl xl:text-2xl font-bold tracking-tight text-emerald-950 group-hover:text-emerald-800 transition-colors">
-            Pastures Gardening
-          </span>
+          <PasturesLogo variant="horizontal" size="sm" showSubtitle={true} />
         </button>
 
         {/* Global Search Bar (Center / Desktop & Tablet) */}
@@ -595,7 +609,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             }`}
           >
             <Sprout className="w-3.5 h-3.5 text-emerald-700" />
-            <span>Gardens</span>
+            <span>Gardens & 3D Map</span>
           </button>
 
           <button
@@ -613,6 +627,22 @@ export const Navigation: React.FC<NavigationProps> = ({
                 {pendingRequestsCount}
               </span>
             )}
+          </button>
+
+          <button
+            onClick={() => onSelectTab('unchanging_lane')}
+            className={`cursor-pointer transition-colors pb-0.5 border-b-2 flex items-center gap-1.5 ${
+              currentTab === 'unchanging_lane'
+                ? 'border-cyan-600 text-cyan-950 font-bold'
+                : 'border-transparent text-stone-600 hover:text-cyan-800'
+            }`}
+            title="The Unchanging Lane: AI Video Prompts & Production Studio"
+          >
+            <Film className="w-3.5 h-3.5 text-cyan-600" />
+            <span>Unchanging Lane</span>
+            <span className="px-1.5 py-0.2 text-[9px] font-bold bg-cyan-700 text-white rounded-full">
+              12 Clips
+            </span>
           </button>
         </nav>
 
@@ -642,37 +672,103 @@ export const Navigation: React.FC<NavigationProps> = ({
             )}
           </button>
 
-          {/* Role selector dropdown */}
-          <div className="hidden sm:flex items-center text-xs bg-stone-200/70 rounded-md p-0.5 border border-stone-300/60">
+          {/* Dedicated Dual Portal Switcher */}
+          <div className="flex items-center text-xs bg-stone-200/80 p-0.5 rounded-lg border border-stone-300/80 shadow-2xs">
+            <button
+              onClick={() => {
+                onSwitchRole('customer');
+                onSelectTab('client_portal');
+              }}
+              title="Switch to Estate Client Portal (Eleanor Vance)"
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold cursor-pointer transition-all flex items-center gap-1 ${
+                currentTab === 'client_portal' || (currentUser.role === 'customer' && currentTab === 'dashboard')
+                  ? 'bg-emerald-800 text-white shadow-xs'
+                  : 'text-stone-700 hover:text-stone-900'
+              }`}
+            >
+              <Sprout className="w-3 h-3 text-emerald-400" />
+              <span>Client Portal</span>
+            </button>
+            <button
+              onClick={() => {
+                if (!isProviderAuthenticated) {
+                  onOpenProviderLogin ? onOpenProviderLogin() : onSelectTab('provider_portal');
+                } else {
+                  if (currentUser.role === 'customer') {
+                    onSwitchRole('gardener');
+                  }
+                  onSelectTab('provider_portal');
+                }
+              }}
+              title={
+                isProviderAuthenticated
+                  ? 'Switch to Service Provider Hub (Authenticated)'
+                  : 'Contractor Login Required (Security PIN)'
+              }
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold cursor-pointer transition-all flex items-center gap-1 ${
+                currentTab === 'provider_portal' || (currentUser.role !== 'customer' && currentTab === 'dashboard')
+                  ? 'bg-stone-900 text-emerald-400 shadow-xs ring-1 ring-emerald-500/50'
+                  : 'text-stone-700 hover:text-stone-900'
+              }`}
+            >
+              {isProviderAuthenticated ? (
+                <>
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                  <span>Provider Hub</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3 h-3 text-amber-600" />
+                  <span>Provider Login</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* User-Friendly Platform Guide Button */}
+          {onOpenPortalGuide && (
+            <button
+              onClick={onOpenPortalGuide}
+              className="px-2 py-1 text-stone-600 hover:text-emerald-900 hover:bg-stone-200/70 rounded-md transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-medium"
+              title="Platform Guide & Role Switcher"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-emerald-700" />
+              <span className="hidden xl:inline">Portal Guide</span>
+            </button>
+          )}
+
+          {/* Role selector dropdown for staff */}
+          <div className="hidden xl:flex items-center text-xs bg-stone-200/50 rounded-md p-0.5 border border-stone-300/50">
             <button
               onClick={() => onSwitchRole('customer')}
-              title="View as Client"
-              className={`px-2 py-1 rounded text-[11px] font-medium cursor-pointer transition-colors ${
+              title="Client Persona"
+              className={`px-2 py-0.5 rounded text-[10px] font-medium cursor-pointer transition-colors ${
                 currentUser.role === 'customer'
                   ? 'bg-white text-emerald-900 shadow-xs font-bold'
-                  : 'text-stone-600 hover:text-stone-900'
+                  : 'text-stone-500 hover:text-stone-900'
               }`}
             >
               Client
             </button>
             <button
               onClick={() => onSwitchRole('gardener')}
-              title="View as Field Groundsman"
-              className={`px-2 py-1 rounded text-[11px] font-medium cursor-pointer transition-colors ${
+              title="Field Groundsman Persona"
+              className={`px-2 py-0.5 rounded text-[10px] font-medium cursor-pointer transition-colors ${
                 currentUser.role === 'gardener'
                   ? 'bg-white text-emerald-900 shadow-xs font-bold'
-                  : 'text-stone-600 hover:text-stone-900'
+                  : 'text-stone-500 hover:text-stone-900'
               }`}
             >
-              Gardener
+              Crew
             </button>
             <button
               onClick={() => onSwitchRole('admin')}
-              title="View as Operations Admin"
-              className={`px-2 py-1 rounded text-[11px] font-medium cursor-pointer transition-colors ${
+              title="Operations Admin Persona"
+              className={`px-2 py-0.5 rounded text-[10px] font-medium cursor-pointer transition-colors ${
                 currentUser.role === 'admin'
                   ? 'bg-white text-emerald-900 shadow-xs font-bold'
-                  : 'text-stone-600 hover:text-stone-900'
+                  : 'text-stone-500 hover:text-stone-900'
               }`}
             >
               Admin
@@ -696,6 +792,51 @@ export const Navigation: React.FC<NavigationProps> = ({
 
       {/* Sub-bar / Navigation for mobile and desktop tabs */}
       <div className="flex overflow-x-auto px-4 py-2 border-t border-stone-200 gap-4 text-xs font-medium text-stone-600 scrollbar-none bg-stone-50/50">
+        <button
+          onClick={() => {
+            onSwitchRole('customer');
+            onSelectTab('client_portal');
+          }}
+          className={`shrink-0 cursor-pointer pb-0.5 flex items-center gap-1 ${
+            currentTab === 'client_portal'
+              ? 'text-emerald-900 font-bold border-b-2 border-emerald-800'
+              : 'hover:text-stone-900'
+          }`}
+        >
+          <Sprout className="w-3.5 h-3.5 text-emerald-700" />
+          <span>Client Portal</span>
+        </button>
+
+        <button
+          onClick={() => {
+            if (!isProviderAuthenticated) {
+              onOpenProviderLogin ? onOpenProviderLogin() : onSelectTab('provider_portal');
+            } else {
+              if (currentUser.role === 'customer') {
+                onSwitchRole('gardener');
+              }
+              onSelectTab('provider_portal');
+            }
+          }}
+          className={`shrink-0 cursor-pointer pb-0.5 flex items-center gap-1 ${
+            currentTab === 'provider_portal'
+              ? 'text-emerald-900 font-bold border-b-2 border-emerald-800'
+              : 'hover:text-stone-900'
+          }`}
+        >
+          {isProviderAuthenticated ? (
+            <>
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Provider Hub</span>
+            </>
+          ) : (
+            <>
+              <Lock className="w-3.5 h-3.5 text-amber-700" />
+              <span>Staff Login</span>
+            </>
+          )}
+        </button>
+
         <button
           onClick={() => onSelectTab('dashboard')}
           className={`shrink-0 cursor-pointer pb-0.5 ${currentTab === 'dashboard' ? 'text-emerald-800 font-bold border-b-2 border-emerald-700' : 'hover:text-stone-900'}`}
@@ -724,13 +865,13 @@ export const Navigation: React.FC<NavigationProps> = ({
           onClick={() => onSelectTab('gardens')}
           className={`shrink-0 cursor-pointer pb-0.5 ${currentTab === 'gardens' ? 'text-emerald-800 font-bold border-b-2 border-emerald-700' : 'hover:text-stone-900'}`}
         >
-          Gardens ({plants.length} Plants)
+          Gardens ({plants.length})
         </button>
         <button
           onClick={() => onSelectTab('ar_garden')}
           className={`shrink-0 cursor-pointer pb-0.5 ${currentTab === 'ar_garden' ? 'text-emerald-800 font-bold border-b-2 border-emerald-700' : 'hover:text-stone-900'}`}
         >
-          AR Garden
+          3D & 360° Panorama
         </button>
         <button
           onClick={() => onSelectTab('ai_assistant')}
@@ -749,6 +890,13 @@ export const Navigation: React.FC<NavigationProps> = ({
           className={`shrink-0 cursor-pointer pb-0.5 ${currentTab === 'requests' ? 'text-emerald-800 font-bold border-b-2 border-emerald-700' : 'hover:text-stone-900'}`}
         >
           Client Requests ({pendingRequestsCount})
+        </button>
+        <button
+          onClick={() => onSelectTab('unchanging_lane')}
+          className={`shrink-0 cursor-pointer pb-0.5 flex items-center gap-1 ${currentTab === 'unchanging_lane' ? 'text-cyan-800 font-bold border-b-2 border-cyan-700' : 'hover:text-cyan-900'}`}
+        >
+          <Film className="w-3 h-3 text-cyan-600" />
+          <span>Unchanging Lane (12 Clips)</span>
         </button>
         <button
           onClick={() => onSelectTab('profile')}

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { UserProfile, UserRole } from '../types';
 import { X, User, Key, Mail, MapPin, CheckCircle2, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
+import { PasturesLogo } from './PasturesLogo';
 
 interface AuthModalProps {
   currentUser: UserProfile;
   isOpen: boolean;
   onClose: () => void;
   onUpdateUser: (user: UserProfile) => void;
+  onOpenProviderLogin?: () => void;
 }
 
 export type AuthMode = 'login' | 'register' | 'forgot_password' | 'verify_email' | 'profile';
@@ -16,6 +18,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   onUpdateUser,
+  onOpenProviderLogin,
 }) => {
   const [mode, setMode] = useState<AuthMode>('profile');
   const [name, setName] = useState(currentUser.name);
@@ -106,6 +109,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
+        <div className="mb-4">
+          <PasturesLogo variant="horizontal" size="sm" />
+        </div>
+
         {/* 1. LOGIN */}
         {mode === 'login' && (
           <form onSubmit={handleLogin} className="space-y-4">
@@ -171,6 +178,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 Register
               </button>
             </div>
+
+            {onOpenProviderLogin && (
+              <div className="pt-3 border-t border-stone-150">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenProviderLogin();
+                  }}
+                  className="w-full py-2 px-3 text-xs font-semibold text-emerald-900 bg-stone-100 hover:bg-stone-200/80 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-stone-200"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Service Provider & Contractor Staff Login →</span>
+                </button>
+              </div>
+            )}
           </form>
         )}
 

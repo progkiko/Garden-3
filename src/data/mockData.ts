@@ -1,4 +1,4 @@
-import { ServiceItem, Booking, QuoteEstimate, Invoice, GardenPlant, UserProfile } from '../types';
+import { ServiceItem, Booking, QuoteEstimate, Invoice, GardenPlant, UserProfile, StaffAccount } from '../types';
 
 export const INITIAL_SERVICES: ServiceItem[] = [
   {
@@ -101,6 +101,45 @@ export const INITIAL_USERS: UserProfile[] = [
     role: 'admin',
     address: 'Pastures HQ, Stroud Valley, Gloucestershire',
     postcode: 'GL5 3PQ',
+  },
+];
+
+export const STAFF_ACCOUNTS: StaffAccount[] = [
+  {
+    id: 'usr-gardener-1',
+    name: 'Callum Brooks',
+    title: 'Senior Groundsman & RHS Master',
+    email: 'callum@pasturesgardening.co.uk',
+    badgeNumber: 'PG-GRD-01',
+    role: 'gardener',
+    pin: '1928',
+    phone: '+44 7700 900881',
+    securityClearance: 'Level 2 (Lead Groundsman)',
+    vehicle: 'Ford Transit Custom Tipper (PAST-01)',
+  },
+  {
+    id: 'usr-admin-1',
+    name: 'Margaret Croft',
+    title: 'Operations Director & Central Dispatch',
+    email: 'margaret@pasturesgardening.co.uk',
+    badgeNumber: 'PG-OPS-09',
+    role: 'admin',
+    pin: '9901',
+    phone: '+44 7700 900990',
+    securityClearance: 'Level 3 (Operations Admin)',
+    vehicle: 'Pastures Central Depot Operations',
+  },
+  {
+    id: 'usr-gardener-2',
+    name: 'Liam Evans',
+    title: 'Topiary & Arborist Specialist',
+    email: 'liam@pasturesgardening.co.uk',
+    badgeNumber: 'PG-ARB-04',
+    role: 'gardener',
+    pin: '4432',
+    phone: '+44 7700 900332',
+    securityClearance: 'Level 1 (Field Crew)',
+    vehicle: 'Isuzu D-Max 4x4 (PAST-02)',
   },
 ];
 

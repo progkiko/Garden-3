@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 620" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <g transform="translate(100, 40)">
+    <!-- Horizon Ground Wave -->
+    <path
+      d="M 28 260 C 95 252, 140 254, 172 242 C 196 233, 228 245, 268 260"
+      stroke="#234933"
+      stroke-width="4.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+
+    <!-- Stem convergent arcs -->
+    <path
+      d="M 142 255 C 160 248, 168 230, 172 208 C 174 192, 174 175, 174 158"
+      stroke="#234933"
+      stroke-width="5"
+      stroke-linecap="round"
+      fill="none"
+    />
+    <path
+      d="M 204 250 C 188 244, 178 228, 174 208"
+      stroke="#234933"
+      stroke-width="5"
+      stroke-linecap="round"
+      fill="none"
+    />
+
+    <!-- Left Leaf Contour -->
+    <path
+      d="M 172 184 C 146 182, 110 162, 104 122 C 100 92, 128 74, 164 88 C 168 110, 170 142, 172 184 Z"
+      stroke="#234933"
+      stroke-width="4.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+    <!-- Left Leaf Vein -->
+    <path
+      d="M 170 178 C 152 148, 136 126, 122 105"
+      stroke="#2d5a3c"
+      stroke-width="3.5"
+      stroke-linecap="round"
+      fill="none"
+    />
+
+    <!-- Right Leaf Contour -->
+    <path
+      d="M 174 158 C 178 116, 198 62, 256 55 C 272 110, 236 168, 176 194"
+      stroke="#234933"
+      stroke-width="5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+    <!-- Right Leaf Vein -->
+    <path
+      d="M 176 172 C 196 140, 216 110, 242 70"
+      stroke="#2d5a3c"
+      stroke-width="3.5"
+      stroke-linecap="round"
+      fill="none"
+    />
+  </g>
+
+  <!-- PASTURES Heading -->
+  <text
+    x="250"
+    y="440"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    font-size="46"
+    font-weight="800"
+    letter-spacing="0.24em"
+    fill="#234933"
+  >
+    PASTURES
+  </text>
+
+  <!-- Gardening and Maintenance Subtitle -->
+  <text
+    x="250"
+    y="490"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    font-size="22"
+    font-weight="400"
+    letter-spacing="0.04em"
+    fill="#2d5a3c"
+  >
+    Gardening and Maintenance
+  </text>
+</svg>

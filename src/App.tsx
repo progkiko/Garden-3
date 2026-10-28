@@ -7,6 +7,8 @@ import {
   QuoteEstimate,
   Invoice,
   GardenPlant,
+  ProviderStaffSession,
+  StaffAccount,
 } from './types';
 import { ClientRequest, BackendStats } from '../server/types';
 import {
@@ -16,6 +18,7 @@ import {
   INITIAL_QUOTES,
   INITIAL_INVOICES,
   INITIAL_PLANTS,
+  STAFF_ACCOUNTS,
 } from './data/mockData';
 import { Navigation, NavTab } from './components/Navigation';
 import { HomeView } from './components/HomeView';
@@ -34,6 +37,11 @@ import { AiAssistantView } from './components/AiAssistantView';
 import { GardensView } from './components/GardensView';
 import { ProfileView } from './components/ProfileView';
 import { SplashScreen } from './components/SplashScreen';
+import { ClientPortalView } from './components/ClientPortalView';
+import { ServiceProviderPortalView } from './components/ServiceProviderPortalView';
+import { ProviderAuthModal } from './components/ProviderAuthModal';
+import { PortalGuideModal } from './components/PortalGuideModal';
+import { UnchangingLaneStudioView } from './components/UnchangingLaneStudioView';
 import { api } from './api';
 
 export default function App() {
@@ -67,9 +75,68 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Provider Staff Authentication & Security Session State
+  const [providerSession, setProviderSession] = useState<ProviderStaffSession | null>(() => {
+    try {
+      const stored = localStorage.getItem('pastures_provider_session');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isProviderAuthModalOpen, setIsProviderAuthModalOpen] = useState(false);
+  const [isPortalGuideOpen, setIsPortalGuideOpen] = useState(false);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleAuthenticateProvider = (staff: StaffAccount, session: ProviderStaffSession) => {
+    setProviderSession(session);
+    try {
+      localStorage.setItem('pastures_provider_session', JSON.stringify(session));
+    } catch (err) {
+      console.warn(err);
+    }
+
+    const matchedUser = INITIAL_USERS.find((u) => u.id === staff.id) || {
+      id: staff.id,
+      name: staff.name,
+      email: staff.email,
+      phone: staff.phone,
+      role: staff.role,
+      address: 'Pastures Depot 3, Meadow Way, Cirencester',
+      postcode: 'GL7 1AA',
+    };
+    setCurrentUser(matchedUser);
+    setCurrentTab('provider_portal');
+    showToast(`Security verified: Welcome ${staff.name} (${staff.badgeNumber})`);
+  };
+
+  const handleLockProviderSession = () => {
+    setProviderSession(null);
+    try {
+      localStorage.removeItem('pastures_provider_session');
+    } catch (err) {
+      console.warn(err);
+    }
+    const customerUser = INITIAL_USERS.find((u) => u.role === 'customer') || INITIAL_USERS[0];
+    setCurrentUser(customerUser);
+    setCurrentTab('client_portal');
+    showToast('Provider session locked. Returned to Client Portal.');
+  };
+
+  const handleOpenProviderPortal = () => {
+    if (!providerSession) {
+      setIsProviderAuthModalOpen(true);
+    } else {
+      if (currentUser.role === 'customer') {
+        const staffUser = INITIAL_USERS.find((u) => u.id === providerSession.staffId) || INITIAL_USERS[1];
+        setCurrentUser(staffUser);
+      }
+      setCurrentTab('provider_portal');
+    }
   };
 
   // Fetch all data from backend REST API on mount
@@ -245,6 +312,16 @@ export default function App() {
     showToast(`Quote ${updatedQuote.quoteRef} marked ${updatedQuote.status.toUpperCase()}`);
   };
 
+  const handleAcceptQuote = async (quoteId: string) => {
+    try {
+      const updated = await api.updateQuote(quoteId, { status: 'approved' });
+      setQuotes((prev) => prev.map((q) => (q.id === quoteId ? updated : q)));
+      showToast(`Quote ${updated.quoteRef} approved! Grounds crew notified.`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleAddInvoice = async (newInvoice: Invoice) => {
     try {
       const created = await api.createInvoice(newInvoice);
@@ -329,6 +406,9 @@ export default function App() {
           setSelectedRequestId(r.id);
           setCurrentTab('requests');
         }}
+        isProviderAuthenticated={Boolean(providerSession)}
+        onOpenProviderLogin={() => setIsProviderAuthModalOpen(true)}
+        onOpenPortalGuide={() => setIsPortalGuideOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -338,6 +418,57 @@ export default function App() {
             services={services}
             onSelectTab={setCurrentTab}
             onSelectServiceToBook={handleSelectServiceToBook}
+          />
+        )}
+
+        {currentTab === 'client_portal' && (
+          <ClientPortalView
+            currentUser={currentUser}
+            bookings={bookings}
+            invoices={invoices}
+            quotes={quotes}
+            plants={plants}
+            services={services}
+            clientRequests={clientRequests}
+            onBookService={() => setCurrentTab('bookings')}
+            onRequestAssistance={() => setCurrentTab('requests')}
+            onPayInvoice={(inv) => setPayingInvoice(inv)}
+            onViewQuote={(_q) => setCurrentTab('quotes')}
+            onAcceptQuote={handleAcceptQuote}
+            onOpenBookingDetails={(b) => setSelectedBookingForDetails(b)}
+            onOpenPlantDetails={(p) => {
+              setSelectedPlantId(p.id);
+              setCurrentTab('gardens');
+            }}
+            onOpenMessages={() => setCurrentTab('messages')}
+            onSwitchToProviderPortal={handleOpenProviderPortal}
+          />
+        )}
+
+        {currentTab === 'provider_portal' && (
+          <ServiceProviderPortalView
+            currentUser={currentUser}
+            providerSession={providerSession}
+            bookings={bookings}
+            invoices={invoices}
+            quotes={quotes}
+            services={services}
+            clientRequests={clientRequests}
+            backendStats={backendStats}
+            onUpdateBookingStatus={handleUpdateBookingStatus}
+            onToggleChecklistTask={handleToggleChecklistTask}
+            onOpenBookingDetails={(b) => setSelectedBookingForDetails(b)}
+            onDispatchRequestAction={handleDispatchRequestAction}
+            onCreateQuote={handleAddQuote}
+            onCreateInvoice={handleAddInvoice}
+            onOpenAiAssistant={() => setCurrentTab('ai_assistant')}
+            onOpenArGarden={() => setCurrentTab('ar_garden')}
+            onSwitchToClientPortal={() => {
+              handleSwitchRole('customer');
+              setCurrentTab('client_portal');
+            }}
+            onLockSession={handleLockProviderSession}
+            onOpenProviderLogin={() => setIsProviderAuthModalOpen(true)}
           />
         )}
 
@@ -353,6 +484,7 @@ export default function App() {
             onUpdateBookingStatus={handleUpdateBookingStatus}
             onToggleChecklistTask={handleToggleChecklistTask}
             onOpenBookingDetails={(b) => setSelectedBookingForDetails(b)}
+            onAlertActionApplied={(_alert, msg) => showToast(msg)}
           />
         )}
 
@@ -402,11 +534,22 @@ export default function App() {
             onSelectPlant={handleUpdatePlant}
             onOpenGardenMap={() => setCurrentTab('ar_garden')}
             onWaterPlant={handleUpdatePlant}
+            onAddPlant={handleAddPlant}
+            onUpdatePlant={handleUpdatePlant}
             initialSelectedPlantId={selectedPlantId}
           />
         )}
 
-        {currentTab === 'ai_assistant' && <AiAssistantView />}
+        {currentTab === 'ai_assistant' && (
+          <AiAssistantView
+            onAddPlant={(newPlant) => {
+              handleAddPlant(newPlant);
+              showToast(`Added ${newPlant.speciesName} to your garden!`);
+            }}
+            onNavigateToGardens={() => setCurrentTab('gardens')}
+            onNavigateToEstimator={() => setCurrentTab('quotes')}
+          />
+        )}
 
         {currentTab === 'ar_garden' && (
           <GardenTrackingArView
@@ -442,6 +585,8 @@ export default function App() {
             initialSelectedRequestId={selectedRequestId}
           />
         )}
+
+        {currentTab === 'unchanging_lane' && <UnchangingLaneStudioView />}
       </main>
 
       {/* Quiet Footer */}
@@ -516,6 +661,15 @@ export default function App() {
       {showSplash && (
         <SplashScreen
           onEnterApp={() => setShowSplash(false)}
+          onEnterClientPortal={() => {
+            handleSwitchRole('customer');
+            setCurrentTab('client_portal');
+            setShowSplash(false);
+          }}
+          onEnterProviderPortal={() => {
+            setShowSplash(false);
+            handleOpenProviderPortal();
+          }}
           onOpenOnboarding={() => {
             setShowSplash(false);
             setIsOnboardingOpen(true);
@@ -573,10 +727,30 @@ export default function App() {
         currentUser={currentUser}
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        onOpenProviderLogin={() => setIsProviderAuthModalOpen(true)}
         onUpdateUser={(updated) => {
           setCurrentUser(updated);
           showToast('Profile information updated');
         }}
+      />
+
+      {/* Provider Staff Authentication Modal */}
+      <ProviderAuthModal
+        isOpen={isProviderAuthModalOpen}
+        onClose={() => setIsProviderAuthModalOpen(false)}
+        onAuthenticate={handleAuthenticateProvider}
+        targetDestination="Service Provider Portal"
+      />
+
+      {/* User-Friendly Platform & Role Guide Modal */}
+      <PortalGuideModal
+        isOpen={isPortalGuideOpen}
+        onClose={() => setIsPortalGuideOpen(false)}
+        onSelectClientPortal={() => {
+          handleSwitchRole('customer');
+          setCurrentTab('client_portal');
+        }}
+        onSelectProviderPortal={handleOpenProviderPortal}
       />
     </div>
   );

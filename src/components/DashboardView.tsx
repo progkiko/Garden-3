@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Booking, Invoice, GardenPlant, UserProfile, UserRole, QuoteEstimate } from '../types';
+import { Booking, Invoice, GardenPlant, UserProfile, UserRole, QuoteEstimate, GardenCareAlert } from '../types';
 import { NavTab } from './Navigation';
+import { WeatherCareAlertsBanner } from './WeatherCareAlertsBanner';
 import {
   Calendar,
   CheckCircle2,
@@ -31,6 +32,7 @@ interface DashboardViewProps {
   onUpdateBookingStatus: (bookingId: string, status: Booking['status']) => void;
   onToggleChecklistTask: (bookingId: string, task: string) => void;
   onOpenBookingDetails?: (booking: Booking) => void;
+  onAlertActionApplied?: (alert: GardenCareAlert, message: string) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -44,8 +46,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onUpdateBookingStatus,
   onToggleChecklistTask,
   onOpenBookingDetails,
+  onAlertActionApplied,
 }) => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [actionToast, setActionToast] = useState<string | null>(null);
 
   // Filter bookings
   const relevantBookings = bookings.filter((b) => {
@@ -103,6 +107,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Localized Weather Forecast & Gemini AI Care Alerts */}
+      <WeatherCareAlertsBanner
+        currentUser={currentUser}
+        plants={plants}
+        onSelectTab={onSelectTab}
+        onAlertActionApplied={(alert, msg) => {
+          setActionToast(msg);
+          setTimeout(() => setActionToast(null), 5000);
+          if (onAlertActionApplied) onAlertActionApplied(alert, msg);
+        }}
+      />
+
+      {/* Action Directive Notification Banner */}
+      {actionToast && (
+        <div className="bg-emerald-900 text-emerald-100 border border-emerald-700 px-4 py-3 rounded-xl flex items-center justify-between text-xs shadow-md animate-fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="font-medium">{actionToast}</span>
+          </div>
+          <button
+            onClick={() => setActionToast(null)}
+            className="text-emerald-300 hover:text-white cursor-pointer ml-3 font-bold text-sm"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Metric Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -354,10 +386,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 ))}
               </div>
               <button
-                onClick={() => onSelectTab('ar_garden')}
-                className="w-full py-2 text-xs font-semibold text-stone-800 bg-stone-50 hover:bg-stone-100 border border-stone-300 rounded-lg cursor-pointer transition-colors text-center"
+                onClick={() => onSelectTab('gardens')}
+                className="w-full py-2.5 text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-700 rounded-lg cursor-pointer transition-colors text-center flex items-center justify-center gap-2 shadow-xs"
               >
-                Open AR Garden Planner
+                <span>Explore Interactive Garden (3D / 360° Views)</span>
+                <span>→</span>
               </button>
             </div>
           </div>

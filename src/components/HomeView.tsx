@@ -3,6 +3,9 @@ import { ServiceItem } from '../types';
 import { NavTab } from './Navigation';
 import { Check, ArrowRight, Sparkles, Shield, Clock, Leaf, Scissors, SunMedium } from 'lucide-react';
 
+import { PasturesLogo } from './PasturesLogo';
+import { Sprout } from 'lucide-react';
+
 interface HomeViewProps {
   services: ServiceItem[];
   onSelectTab: (tab: NavTab) => void;
@@ -28,25 +31,45 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/60 to-transparent" />
         </div>
 
-        <div className="relative z-10 max-w-4xl px-6 py-16 sm:px-12 sm:py-24 lg:py-28">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-4">
+        <div className="relative z-10 max-w-4xl px-6 py-16 sm:px-12 sm:py-20 lg:py-24">
+          <div className="mb-6 inline-block bg-stone-900/80 backdrop-blur-md px-4 py-2 rounded-xl border border-stone-800">
+            <PasturesLogo variant="horizontal" size="sm" theme="light" />
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-3">
             <Leaf className="w-4 h-4 text-emerald-400" />
-            <span>Master Horticultural Craftsmanship</span>
+            <span>Master Horticultural Craftsmanship · Cotswolds & South West</span>
           </div>
 
           <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
             English garden elegance, cultivated with precision.
           </h1>
 
-          <p className="mt-5 text-base sm:text-lg text-stone-300 max-w-2xl leading-relaxed">
-            From precision lawn striping and formal topiary sculpting to full seasonal clearances and
-            AR-guided plant tracking. Trusted across the Cotswolds and South West.
+          <p className="mt-4 text-base sm:text-lg text-stone-300 max-w-2xl leading-relaxed">
+            From precision cylinder striping and formal topiary sculpting to full seasonal clearances and
+            AR-guided plant tracking. Integrated dual portals for estate clients and field grounds operations.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-3.5">
+            <button
+              onClick={() => onSelectTab('client_portal')}
+              className="px-5 py-3 text-sm font-bold text-white bg-emerald-800 hover:bg-emerald-700 rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap"
+            >
+              <Sprout className="w-4 h-4 text-emerald-300" />
+              <span>Enter Client Portal</span>
+            </button>
+
+            <button
+              onClick={() => onSelectTab('provider_portal')}
+              className="px-5 py-3 text-sm font-bold text-stone-900 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap"
+            >
+              <Shield className="w-4 h-4 text-stone-900" />
+              <span>Service Provider Hub</span>
+            </button>
+
             <button
               onClick={() => onSelectTab('bookings')}
-              className="px-6 py-3 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-600 rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap"
+              className="px-5 py-3 text-sm font-semibold text-stone-200 hover:text-white bg-stone-800/80 hover:bg-stone-800 border border-stone-700 rounded-lg transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap"
             >
               <span>Book Garden Service</span>
               <ArrowRight className="w-4 h-4" />
@@ -54,18 +77,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <button
               onClick={() => onSelectTab('quotes')}
-              className="px-6 py-3 text-sm font-semibold text-stone-900 bg-white hover:bg-stone-100 rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap"
+              className="px-4 py-3 text-sm font-medium text-stone-300 hover:text-white border border-stone-700/80 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
             >
-              <Sparkles className="w-4 h-4 text-emerald-700" />
+              <Sparkles className="w-4 h-4 text-emerald-400" />
               <span>Instant AI Quote</span>
-            </button>
-
-            <button
-              onClick={() => onSelectTab('requests')}
-              className="px-5 py-3 text-sm font-medium text-stone-200 hover:text-white border border-stone-700 hover:border-stone-500 rounded-lg transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap"
-            >
-              <Shield className="w-4 h-4 text-emerald-400" />
-              <span>Client Requests</span>
             </button>
           </div>
 

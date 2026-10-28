@@ -1,5 +1,28 @@
 export type UserRole = 'customer' | 'gardener' | 'admin';
 
+export interface ProviderStaffSession {
+  staffId: string;
+  name: string;
+  email: string;
+  role: 'gardener' | 'admin';
+  badgeNumber: string;
+  authenticatedAt: string;
+  securityClearance: 'Level 1 (Field Crew)' | 'Level 2 (Lead Groundsman)' | 'Level 3 (Operations Admin)';
+}
+
+export interface StaffAccount {
+  id: string;
+  name: string;
+  title: string;
+  email: string;
+  badgeNumber: string;
+  role: 'gardener' | 'admin';
+  pin: string;
+  phone: string;
+  securityClearance: 'Level 1 (Field Crew)' | 'Level 2 (Lead Groundsman)' | 'Level 3 (Operations Admin)';
+  vehicle?: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -159,4 +182,54 @@ export interface CameraVisionResult {
   sunlightExposure: string;
   immediateRecommendation: string;
   safetyOrPestNotice?: string;
+}
+
+export interface DailyWeatherForecast {
+  day: string;
+  date: string;
+  tempMax: number;
+  tempMin: number;
+  precipitationProbability: number;
+  precipitationMm: number;
+  condition: string;
+  conditionIcon: 'sun' | 'cloud-rain' | 'cloud' | 'cloud-sun' | 'wind' | 'snowflake';
+}
+
+export interface WeatherCondition {
+  locationName: string;
+  coordinates: { lat: number; lon: number };
+  temperature: number;
+  feelsLike: number;
+  conditionText: string;
+  conditionCode: number;
+  precipitationProbability: number;
+  expectedRainMm: number;
+  humidity: number;
+  windSpeedKmH: number;
+  uvIndex: number;
+  dailyForecast: DailyWeatherForecast[];
+  updatedAt: string;
+}
+
+export interface GardenCareAlert {
+  id: string;
+  type: 'watering' | 'frost' | 'wind' | 'mowing' | 'pest_disease' | 'soil';
+  urgency: 'urgent' | 'warning' | 'info' | 'optimal';
+  headline: string;
+  message: string;
+  actionAdvice: string;
+  affectedTarget: string;
+  actionButtonLabel?: string;
+  actionTaken?: boolean;
+}
+
+export interface WeatherCareAlertsData {
+  weather: WeatherCondition;
+  alerts: GardenCareAlert[];
+  groundskeepingWindow: {
+    mowingViability: 'Optimal' | 'Fair' | 'Not Recommended';
+    sprayingViability: 'Optimal' | 'Fair' | 'Not Recommended';
+    soilMoistureStatus: 'Dry' | 'Optimal Field Capacity' | 'Saturated';
+    summary: string;
+  };
 }

@@ -15,6 +15,7 @@ import {
   Building,
   ShieldCheck,
 } from 'lucide-react';
+import { PasturesLogo } from './PasturesLogo';
 
 interface AiQuoteInvoiceViewProps {
   quotes: QuoteEstimate[];
@@ -685,9 +686,7 @@ export const AiQuoteInvoiceView: React.FC<AiQuoteInvoiceViewProps> = ({
                   {/* Top Branding & Invoice Meta */}
                   <div className="flex flex-col sm:flex-row justify-between gap-6 border-b border-stone-200 pb-8">
                     <div>
-                      <div className="font-serif text-2xl font-extrabold text-emerald-950 tracking-tight">
-                        Pastures Gardening & Landscaping Ltd
-                      </div>
+                      <PasturesLogo variant="horizontal" size="md" className="mb-2" />
                       <div className="text-xs text-stone-500 mt-1 leading-relaxed">
                         Cotswold Horticultural Depot · Stroud Valley · GL5 3PQ<br />
                         Company No. 09482103 · VAT Reg: GB 284 9281 92<br />
